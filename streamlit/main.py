@@ -1,46 +1,50 @@
 import streamlit as st
-import altair as alt 
-import psycopg2
-import pandas as pd 
-import matplotlib.pyplot as plt
+import pandas as pd
+import requests
+import altair as alt
 
-def connect_to_db():
-    conn = psycopg2.connect(
-        dbname="airflow",
-        user="airflow",
-        password="airflow",
-        host="postgres"
-)
-    cursor = conn.cursor()
-    return cursor, conn
- 
+API_URL = "http://api:8000"
 
-db_conn = connect_to_db()
-cursor = db_conn[0]
-conn = db_conn[1]
+def fetch_all_tickers():
+    response = requests.get(f"{API_URL}/gettickers")
+    if response.status_code == 200:
+        return response.json()
+    return []
 
-df = pd.read_sql("SELECT * FROM StockDailyPrices", conn)
+def fetch_stock_data(symbol):
+    response = requests.get(f"{API_URL}/historical/{symbol}")
+    if response.status_code == 200:
+        return response.json()["historical_data"]
+    return []
 
-
-df['stock_update_date'] = pd.to_datetime(df['stock_update_date'])
-
+def fetch_stock_name(symbol):
+    response = requests.get(f"{API_URL}/getstockname/{symbol}")
+    if response.status_code == 200:
+        return response.json()
+    return []
 
 st.title('Stock Price Viewer')
 
+tickers = fetch_all_tickers()
 
-tickers = df['stock_ticker'].unique()
-selected_ticker = st.selectbox('Select a stock ticker', tickers)
+if tickers:
+    selected_ticker = st.selectbox('Select a stock ticker', tickers)
+    historical_data = fetch_stock_data(selected_ticker)
+    if historical_data:
+        df = pd.DataFrame(historical_data)
+        df['stock_update_date'] = pd.to_datetime(df['stock_update_date'])
 
+        stock_name = fetch_stock_name(selected_ticker[0])
+        st.write(f"Displaying data for {selected_ticker}")
+        st.write(df[['stock_ticker', 'stock_price', 'stock_update_date']])
 
-filtered_df = df[df['stock_ticker'] == selected_ticker]
+        line = alt.Chart(df, title=f'Price of {selected_ticker}').mark_line().encode(
+            x='stock_update_date',
+            y=alt.Y('stock_price').scale(domain=(df['stock_price'].min(), df['stock_price'].max()))
+        )
+        st.altair_chart(line)
 
-
-st.write(f"Displaying data for {selected_ticker}")
-st.write(filtered_df[['stock_ticker', 'stock_price', 'stock_update_date']])
-
-line = alt.Chart(filtered_df, title=f'Price of {selected_ticker}').mark_line().encode(
-    x = 'stock_update_date',
-    y = alt.Y('stock_price').scale(domain=(filtered_df['stock_price'].min(), filtered_df['stock_price'].max()))
-)
-
-st.altair_chart(line)
+    else:
+        st.error(f"No historical data found for {selected_ticker}")
+else:
+    st.error("No tickers found. Make sure your database contains stock data.")
