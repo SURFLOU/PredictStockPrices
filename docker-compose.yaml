@@ -1,7 +1,6 @@
 x-airflow-common:
   &airflow-common
-  build:
-    context: ./airflow/
+  image: dihake/airflow:v1.0
   environment:
     &airflow-common-env
     AIRFLOW__CORE__EXECUTOR: CeleryExecutor
@@ -30,18 +29,14 @@ x-airflow-common:
 services:
 
   api:
-    build:
-      context: api/
-      dockerfile: Dockerfile
+    image: dihake/api:v1.0
     ports:
       - 8000:8000
 
   streamlit:
-    build:
-      context: streamlit/
-      dockerfile: Dockerfile
+    image: dihake/streamlit:v1.0
     ports:
-       - 8501:8501
+       - 80:8501
 
   postgres:
     image: postgres:13
