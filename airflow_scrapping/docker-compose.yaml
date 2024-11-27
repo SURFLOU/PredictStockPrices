@@ -41,7 +41,7 @@ services:
       context: streamlit/
       dockerfile: Dockerfile
     ports:
-       - 80:8501
+       - 443:8501
 
   postgres:
     image: postgres:13
