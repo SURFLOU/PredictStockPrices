@@ -1,0 +1,42 @@
+[2024-11-22T11:19:16.715+0000] {local_task_job_runner.py:123} INFO - ::group::Pre task execution logs
+[2024-11-22T11:19:16.731+0000] {taskinstance.py:2613} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: test_pyspark.run_pyspark_task manual__2024-11-22T11:19:12.067922+00:00 [queued]>
+[2024-11-22T11:19:16.738+0000] {taskinstance.py:2613} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: test_pyspark.run_pyspark_task manual__2024-11-22T11:19:12.067922+00:00 [queued]>
+[2024-11-22T11:19:16.739+0000] {taskinstance.py:2866} INFO - Starting attempt 1 of 2
+[2024-11-22T11:19:16.750+0000] {taskinstance.py:2889} INFO - Executing <Task(PythonOperator): run_pyspark_task> on 2024-11-22 11:19:12.067922+00:00
+[2024-11-22T11:19:16.759+0000] {warnings.py:112} WARNING - /home/***/.local/lib/python3.12/site-packages/***/task/task_runner/standard_task_runner.py:70: DeprecationWarning: This process (pid=192) is multi-threaded, use of fork() may lead to deadlocks in the child.
+  pid = os.fork()
+
+[2024-11-22T11:19:16.761+0000] {standard_task_runner.py:72} INFO - Started process 194 to run task
+[2024-11-22T11:19:16.763+0000] {standard_task_runner.py:104} INFO - Running: ['***', 'tasks', 'run', 'test_pyspark', 'run_pyspark_task', 'manual__2024-11-22T11:19:12.067922+00:00', '--job-id', '22', '--raw', '--subdir', 'DAGS_FOLDER/test_spark.py', '--cfg-path', '/tmp/tmp8a_uo6aw']
+[2024-11-22T11:19:16.764+0000] {standard_task_runner.py:105} INFO - Job 22: Subtask run_pyspark_task
+[2024-11-22T11:19:16.816+0000] {task_command.py:467} INFO - Running <TaskInstance: test_pyspark.run_pyspark_task manual__2024-11-22T11:19:12.067922+00:00 [running]> on host b1cd3ec251f1
+[2024-11-22T11:19:16.908+0000] {taskinstance.py:3132} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='test_pyspark' AIRFLOW_CTX_TASK_ID='run_pyspark_task' AIRFLOW_CTX_EXECUTION_DATE='2024-11-22T11:19:12.067922+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2024-11-22T11:19:12.067922+00:00'
+[2024-11-22T11:19:16.910+0000] {logging_mixin.py:190} INFO - Task instance is in running state
+[2024-11-22T11:19:16.910+0000] {logging_mixin.py:190} INFO -  Previous state of the Task instance: queued
+[2024-11-22T11:19:16.911+0000] {logging_mixin.py:190} INFO - Current task name:run_pyspark_task state:running start_date:2024-11-22 11:19:16.732663+00:00
+[2024-11-22T11:19:16.911+0000] {logging_mixin.py:190} INFO - Dag name:test_pyspark and current dag run status:running
+[2024-11-22T11:19:16.911+0000] {taskinstance.py:731} INFO - ::endgroup::
+[2024-11-22T11:19:26.582+0000] {logging_mixin.py:190} INFO - +-------+-----+
+|   name|value|
++-------+-----+
+|  Alice|    1|
+|    Bob|    2|
+|Charlie|    3|
++-------+-----+
+[2024-11-22T11:19:27.167+0000] {logging_mixin.py:190} INFO - +-------+-----+-------------+
+|   name|value|value_plus_10|
++-------+-----+-------------+
+|  Alice|    1|           11|
+|    Bob|    2|           12|
+|Charlie|    3|           13|
++-------+-----+-------------+
+[2024-11-22T11:19:28.045+0000] {python.py:240} INFO - Done. Returned value was: None
+[2024-11-22T11:19:28.056+0000] {taskinstance.py:340} INFO - ::group::Post task execution logs
+[2024-11-22T11:19:28.056+0000] {taskinstance.py:352} INFO - Marking task as SUCCESS. dag_id=test_pyspark, task_id=run_pyspark_task, run_id=manual__2024-11-22T11:19:12.067922+00:00, execution_date=20241122T111912, start_date=20241122T111916, end_date=20241122T111928
+[2024-11-22T11:19:28.066+0000] {logging_mixin.py:190} INFO - Task instance in success state
+[2024-11-22T11:19:28.066+0000] {logging_mixin.py:190} INFO -  Previous state of the Task instance: running
+[2024-11-22T11:19:28.067+0000] {logging_mixin.py:190} INFO - Dag name:test_pyspark queued_at:2024-11-22 11:19:12.091647+00:00
+[2024-11-22T11:19:28.067+0000] {logging_mixin.py:190} INFO - Task hostname:b1cd3ec251f1 operator:PythonOperator
+[2024-11-22T11:19:28.090+0000] {local_task_job_runner.py:266} INFO - Task exited with return code 0
+[2024-11-22T11:19:28.103+0000] {taskinstance.py:3895} INFO - 0 downstream tasks scheduled from follow-on schedule check
+[2024-11-22T11:19:28.105+0000] {local_task_job_runner.py:245} INFO - ::endgroup::

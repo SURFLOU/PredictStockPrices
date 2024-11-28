@@ -1,0 +1,20 @@
+[2024-11-25T14:00:04.261+0000] {local_task_job_runner.py:123} INFO - ::group::Pre task execution logs
+[2024-11-25T14:00:04.284+0000] {taskinstance.py:2613} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: insert_stockprices_daily_table.insert_to_db scheduled__2024-11-25T13:45:00+00:00 [queued]>
+[2024-11-25T14:00:04.298+0000] {taskinstance.py:2613} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: insert_stockprices_daily_table.insert_to_db scheduled__2024-11-25T13:45:00+00:00 [queued]>
+[2024-11-25T14:00:04.299+0000] {taskinstance.py:2866} INFO - Starting attempt 1 of 1
+[2024-11-25T14:00:04.317+0000] {taskinstance.py:2889} INFO - Executing <Task(PythonOperator): insert_to_db> on 2024-11-25 13:45:00+00:00
+[2024-11-25T14:00:04.326+0000] {warnings.py:112} WARNING - /home/***/.local/lib/python3.12/site-packages/***/task/task_runner/standard_task_runner.py:70: DeprecationWarning: This process (pid=37870) is multi-threaded, use of fork() may lead to deadlocks in the child.
+  pid = os.fork()
+
+[2024-11-25T14:00:04.328+0000] {standard_task_runner.py:72} INFO - Started process 37871 to run task
+[2024-11-25T14:00:04.329+0000] {standard_task_runner.py:104} INFO - Running: ['***', 'tasks', 'run', 'insert_stockprices_daily_table', 'insert_to_db', 'scheduled__2024-11-25T13:45:00+00:00', '--job-id', '66', '--raw', '--subdir', 'DAGS_FOLDER/insert_stockdailyprice.py', '--cfg-path', '/tmp/tmpzwl5_cy2']
+[2024-11-25T14:00:04.331+0000] {standard_task_runner.py:105} INFO - Job 66: Subtask insert_to_db
+[2024-11-25T14:00:04.399+0000] {task_command.py:467} INFO - Running <TaskInstance: insert_stockprices_daily_table.insert_to_db scheduled__2024-11-25T13:45:00+00:00 [running]> on host 7aec5385330f
+[2024-11-25T14:00:04.518+0000] {taskinstance.py:3132} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='insert_stockprices_daily_table' AIRFLOW_CTX_TASK_ID='insert_to_db' AIRFLOW_CTX_EXECUTION_DATE='2024-11-25T13:45:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2024-11-25T13:45:00+00:00'
+[2024-11-25T14:00:04.520+0000] {taskinstance.py:731} INFO - ::endgroup::
+[2024-11-25T14:00:05.001+0000] {python.py:240} INFO - Done. Returned value was: None
+[2024-11-25T14:00:05.015+0000] {taskinstance.py:340} INFO - ::group::Post task execution logs
+[2024-11-25T14:00:05.015+0000] {taskinstance.py:352} INFO - Marking task as SUCCESS. dag_id=insert_stockprices_daily_table, task_id=insert_to_db, run_id=scheduled__2024-11-25T13:45:00+00:00, execution_date=20241125T134500, start_date=20241125T140004, end_date=20241125T140005
+[2024-11-25T14:00:05.066+0000] {local_task_job_runner.py:266} INFO - Task exited with return code 0
+[2024-11-25T14:00:05.089+0000] {taskinstance.py:3895} INFO - 0 downstream tasks scheduled from follow-on schedule check
+[2024-11-25T14:00:05.092+0000] {local_task_job_runner.py:245} INFO - ::endgroup::
