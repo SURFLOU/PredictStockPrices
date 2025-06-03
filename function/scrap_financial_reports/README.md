@@ -30,7 +30,6 @@ This Python script scrapes financial report data from BiznesRadar’s Profit and
 - PostgreSQL database (e.g., Azure Cosmos DB for PostgreSQL / Citus)  
 - Network access to the PostgreSQL server (port 5432 open, SSL if required)
 - Azure od kolegi
-- 
 
 ---
 
