@@ -72,7 +72,7 @@ SELECT create_distributed_table('financial_reports', 'ticker');
 This project is provided under the DXC kradziony abonament na Azure
 
 ## 😜 Additional info 
-
+---
   _______________
  /               \
 |   TRZASKOWSKI   |
@@ -85,11 +85,13 @@ This project is provided under the DXC kradziony abonament na Azure
                 ||----w |
                 ||     ||
 
-
+---
 ## 🤝 Acknowledgments
+---
 BiznesRadar.pl – Source of financial data
 Piter x2, Kuba, Mati - Hardworkers + prezes
 Requests & BeautifulSoup – For HTML parsing
 Pandas – For DataFrame manipulation
 psycopg2 – For PostgreSQL connectivity
 You – For reading this README!
+---
