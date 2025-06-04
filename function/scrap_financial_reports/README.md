@@ -38,8 +38,9 @@ This Python script scrapes financial report data from BiznesRadar’s Profit and
    
    git clone -b dev https://github.com/SURFLOU/PredictStockPrices.git
    cd function\scrap_financial_reports
-
+---
 ## 🗄️ Database Schema
+```
     CREATE TABLE IF NOT EXISTS financial_reports (
     ticker         TEXT,
     year           TEXT,
@@ -50,9 +51,10 @@ This Python script scrapes financial report data from BiznesRadar’s Profit and
     net_profit     INT,
     EBITDA         INT
 );
--- (If using Citus for distribution:)
+ (If using Citus for distribution:)
 SELECT create_distributed_table('financial_reports', 'ticker');
-
+```
+---
 **Column Descriptions:**
 
     ticker – Stock ticker (e.g., "PKN")
@@ -63,9 +65,9 @@ SELECT create_distributed_table('financial_reports', 'ticker');
     operating_profit – Zysk z działalności gospodarczej (Operating Profit)
     net_profit – Zysk netto (Net Profit)
     EBITDA – EBITDA
-
+---
 ## 📄 License
-This project is provided under the DXC kradziony abonament na Azure
+This project is provided under the PredictStockPrices license
 
 ## 🤝 Acknowledgments
 ---
