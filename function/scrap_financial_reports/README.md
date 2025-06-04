@@ -29,8 +29,7 @@ This Python script scrapes financial report data from BiznesRadar’s Profit and
 - Python 3.7+  
 - PostgreSQL database (e.g., Azure Cosmos DB for PostgreSQL / Citus)  
 - Network access to the PostgreSQL server (port 5432 open, SSL if required)
-- Azure od kolegi
-
+- Azure credits
 ---
 
 ## 📦 Installation
@@ -39,8 +38,6 @@ This Python script scrapes financial report data from BiznesRadar’s Profit and
    
    git clone -b dev https://github.com/SURFLOU/PredictStockPrices.git
    cd function\scrap_financial_reports
-
-2. **Jak dalej nie wiesz co z tym zrobic to lepiej to zostaw**
 
 ## 🗄️ Database Schema
     CREATE TABLE IF NOT EXISTS financial_reports (
@@ -70,22 +67,6 @@ SELECT create_distributed_table('financial_reports', 'ticker');
 ## 📄 License
 This project is provided under the DXC kradziony abonament na Azure
 
-## 😜 Additional info 
----
-```
-  _______________
- /               \
-|   TRZASKOWSKI   |
-|       TO        |
-|      PAŁA       |
- \_______________/
-        \   ^__^
-         \  (oo)\_______
-            (__)\       )\/\
-                ||----w |
-                ||     ||
-
-```
 ## 🤝 Acknowledgments
 ---
 ```
@@ -96,4 +77,3 @@ Pandas – For DataFrame manipulation
 psycopg2 – For PostgreSQL connectivity
 You – For reading this README!
 ```
-
