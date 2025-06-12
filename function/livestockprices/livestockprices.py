@@ -34,8 +34,8 @@ def get_live_prices():
         price = match.group('price').replace(',', '.')
         yield {'ticker': ticker, 'price': price, 'time': current_time}
 
-@app.timer_trigger(schedule="0 */10 11-19 * * 1-5", arg_name="myTimer", run_on_startup=False, use_monitor=False)
-async def livestockprices(myTimer: func.TimerRequest) -> None:
+
+async def main():
     try:
         producer = EventHubProducerClient.from_connection_string(
             conn_str=EVENT_HUB_CONNECTION_STR,

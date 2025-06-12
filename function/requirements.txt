@@ -3,3 +3,10 @@
 # Manually managing azure-functions-worker may cause unexpected issues
 
 azure-functions
+azure-servicebus
+requests
+beautifulsoup4
+psycopg2-binary
+pandas
+python-dotenv
+azure-eventhub
