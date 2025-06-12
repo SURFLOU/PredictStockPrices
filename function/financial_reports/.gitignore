@@ -7,3 +7,6 @@ venv/
 # Bytecode cache
 __pycache__/
 *.pyc
+
+#brudnopis
+scrap_financial_reports.py

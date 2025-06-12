@@ -4,6 +4,7 @@ import pandas as pd
 import psycopg2
 from io import StringIO
 import os
+import time
 
 def scrap_financial_reports(ticker: str) -> pd.DataFrame:
     # adres
@@ -77,24 +78,22 @@ def scrap_financial_reports(ticker: str) -> pd.DataFrame:
 
     # print(df.head())
 
-    # czyszczenie
-    # Wywalenie estymatow
-    df = df[df['year'].astype(str).str.match(r'^\d{4}$')]
-
-    # print(df.head())
-
     # dodanie tickera
     df.insert(0, 'ticker', ticker)
 
-    # formatowanie - ticker, year -> str
-    df['ticker'] = df['ticker'].astype(str)
-    df['year'] = df['year'].astype(str)
+    # # czyszczenie
+    # # Wywalenie estymatow
+    # df = df[df['year'].astype(str).str.match(r'^\d{4}$')]
 
-    # formatowanie - usuniecie spacji, type to int
-    cols_to_convert = df.columns[2:8]
-    for col in cols_to_convert:
-        df[col] = df[col].str.replace(' ', '', regex=False)  # remove spaces
-        df[col] = pd.to_numeric(df[col], errors='coerce')  # convert to numbers
+    # # formatowanie - ticker, year -> str
+    # df['ticker'] = df['ticker'].astype(str)
+    # df['year'] = df['year'].astype(str)
+
+    # # formatowanie - usuniecie spacji, type to int
+    # cols_to_convert = df.columns[2:8]
+    # for col in cols_to_convert:
+    #     df[col] = df[col].str.replace(' ', '', regex=False)  # remove spaces
+    #     df[col] = pd.to_numeric(df[col], errors='coerce')  # convert to numbers
 
     return df
 
@@ -104,15 +103,14 @@ def copy_to_financial_reports(conn, df, ticker):
     buffer.seek(0)
     cursor = conn.cursor()
     try:
-        cursor.copy_from(buffer, "financial_reports", sep=',')
+        cursor.copy_from(buffer, "financial_reports_raw", sep=',')
         conn.commit()
-        print(f"{ticker} data inserted into financial_reports.")
+        print(f"{ticker} data inserted into financial_reports_raw.")
     except Exception as e:
         conn.rollback()
         print("Error:", e)
     finally:
         cursor.close()
-
 
 # Connect to the Azure Cosmos DB for PostgreSQL instance
 conn = psycopg2.connect(
@@ -129,12 +127,41 @@ print(conn)
 # df = scrap_financial_reports("KGHM")
 # print(df.head())
 # print(df.info())
-#
+
 
 # 1. add kolejka z azura
 # 2. wyczyscic tabele po testach - done 
 
-for tic in ['CCC']:
+elo_ticker = [
+    
+# 'CCC',	'ATG',	'CEZ',	'CTX',	'AMB',	'DNP',	'AWM',	'ALI',	'AST',	'CDL',	'DBC',	'1AT',	'CRI',	'BDX',	'ACT',	'CIG',	'DAT',	'ATD',	'CLC',	'DBE',	'BRS',	'COG',	'CPL',	'DAD',	'3RG',	'BOS',	'BBT',	'CPA',	'APL',	'ATC',	'BMC',	'CRJ',	'BHW',	'06N',	'DOM',	'CPR',	'BNP',	'ANR',	'ART',	'CPD',	'AMC',	'CFI',	'BBD',	'CLE',	'DGA',	'CDR',	'CLN',	'APN',	'BIO',	'BCS',	'DVL',	'ABE',	'ATR',	'ASB',	'08N',	'ARH',	'CCE',	'DGE',	'CAV',	'DEL',	'BOW',	'APE',	'ASM',	'BCM',	'BFT',	'B24',	'DTR',	'BCX',	'AGO',	'ATT',	'ACG',	'DEK',	'11B',	'BST',	'CTS',	'ADV',	'BLO',	'CPI',	'ATS',	'CRM',	'BMX',	'DCR',	'4MS',	'DMG',	'APT',	'CMP',	'DIA',	'CAP',	'ACP',	'AGT',	'ASE',	'CLD',	'CPS',	'TRK',	'STF',	'UNT',	'VVD',	'SPL',	'VRC',	'YOL',	'TEN',	'SPH',	'WPL',	'SWG',	'ULG',	'TRI',	'ZEP',	'ZMT',	'TAR',	'VRG',	'ZUE',	'SVE',	'TXT',	'VOT',	'STP',	'WLT',	'WTN',	'TOR',	'WIS',	'SPR',	'ZUK',	'TBL',	'ZAB',	'WPR',	'ZRE',	'ULM',	'VOX',	'SVRS',	'IUS',	'TRR',	'UCG',	'NXB',	'XTB',	'STX',	'WIK',	'VTL',	'UNF',	'YAN',	'XPL',	'TMR',	'YRL',	'TPE',	'WAS',	'TRN',	'XTP',	'TLX',	'VIN',	'ZAP',	'ECB',	'TOW',	'URT',	'TSG',	'WWL',	'UNI',	'VGO',	'STS',	'THG',	'WXF',	'TOA',
+
+# 'CCC', 
+'MBK', 'CEZ'
+]
+
+
+# MBK -> MBANK
+# GTN -> GETIN-HOLDING
+# ING -> ING-BANK-SLASKI
+# MIL -> BANK-MILLENNIUM
+# PEO
+# SAN
+# ALR
+
+
+
+# KeyError: "['sales_revenue', 'gross_profit', 'EBIT', 'operating_profit'] not in index"
+ 
+elo = len(elo_ticker)
+i = 1 
+
+for tic in elo_ticker:
     df = scrap_financial_reports(tic)
     print(df.head())
     copy_to_financial_reports(conn, df, tic)
+    print("Progress: ",i ,"/ ",elo)
+    time.sleep(61)
+    i += 1
+
+print('done')    
