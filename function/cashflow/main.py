@@ -11,7 +11,6 @@ from dotenv import load_dotenv
 from io import StringIO
 import logging 
 import time 
-import azure.functions as func 
 
 logging.basicConfig(
     level=logging.INFO, 
@@ -37,7 +36,6 @@ try:
 except Exception as e:
     logging.exception(e)
 
-app = func.FunctionApp()
 
 def scrap_for_ticker(ticker):
     url = f"https://www.biznesradar.pl/raporty-finansowe-przeplywy-pieniezne/{ticker}"
@@ -113,4 +111,4 @@ def copy_to_table(conn, df, table):
 
 
 def main():
-    asyncio.run(run_and_receive)
+    asyncio.run(run_and_receive())

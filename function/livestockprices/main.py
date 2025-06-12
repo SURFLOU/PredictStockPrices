@@ -11,6 +11,9 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 import logging 
 
+
+logging.basicConfig(level=logging.INFO)
+
 app = func.FunctionApp()
 
 EVENT_HUB_CONNECTION_STR = os.getenv("EVENT_HUB_CONNECTION_STR")
@@ -35,7 +38,7 @@ def get_live_prices():
         yield {'ticker': ticker, 'price': price, 'time': current_time}
 
 
-async def main():
+async def main_loop():
     try:
         producer = EventHubProducerClient.from_connection_string(
             conn_str=EVENT_HUB_CONNECTION_STR,
@@ -51,3 +54,6 @@ async def main():
 
     except Exception as e:
         logging.exception("Unhandled error while sending events to Event Hub")
+
+def main():
+    asyncio.run(main_loop())
