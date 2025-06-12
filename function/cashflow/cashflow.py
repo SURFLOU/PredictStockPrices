@@ -21,7 +21,7 @@ logging.basicConfig(
 
 load_dotenv()
 
-NAMESPACE_CONNECTION_STR = os.getenv("servicebus_connectionstring")
+NAMESPACE_CONNECTION_STR = os.getenv("cashflow_queue_connectionstring")
 QUEUE_NAME = "financial_cashflow_queue"
 db_table = "financial_cashflow_raw"
 try: 
@@ -93,17 +93,17 @@ async def run_and_receive():
                     await receiver.complete_message(msg)
                     time.sleep(30)
     logging.info(f"Inserting data to table: {db_table}")
-    copy_to_table(conn, final_df)
+    copy_to_table(conn, final_df, db_table)
 
-def copy_to_table(conn, df):
+def copy_to_table(conn, df, table):
     buffer = StringIO()
     df.to_csv(buffer, index=False, header=False)
     buffer.seek(0)
     cursor = conn.cursor()
     try:
-        cursor.copy_from(buffer, db_table, sep=',')
+        cursor.copy_from(buffer, table, sep=',')
         conn.commit()
-        logging.info(f"data inserted into {db_table}.")
+        logging.info(f"data inserted into {table}.")
     except Exception as e:
         conn.rollback()
         logging.exception(e)
