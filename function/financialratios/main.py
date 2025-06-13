@@ -9,12 +9,12 @@ import logging
 import os 
 
 connection_params = {
-    host=os.getenv('postgres_host'),
-    port=int(os.getenv('postgres_port')),
-    dbname=os.getenv('postgres_dbname'),
-    user=os.getenv('postgres_user'),
-    password=os.getenv('postgres_password'),
-    sslmode="require"
+    "host": os.getenv("postgres_host"),
+    "port": int(os.getenv("postgres_port", "5432")),
+    "dbname": os.getenv("postgres_dbname"),
+    "user": os.getenv("postgres_user"),
+    "password": os.getenv("postgres_password"),
+    "sslmode": "require",
 }
 
 urls = [
@@ -108,23 +108,6 @@ def scrape_table(url):
             values.append(value)
 
     return pd.DataFrame({"ticker": tickers, col_name: values})
-
-# Główna pętla pobierania i łączenia danych
-merged_df = None
-
-for i, url in enumerate(urls):
-    df = scrape_table(url)
-
-    if merged_df is None:
-        merged_df = df
-    else:
-        merged_df = pd.merge(merged_df, df, on="ticker", how="outer")
-
-    print(f"{i+1}/8 pobrane")
-    if i < len(urls) - 1:
-        time.sleep(61)
-
-copy_dataframe_to_db(merged_df, connection_params)
 
 def main():
     merged_df = None
