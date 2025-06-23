@@ -8,14 +8,6 @@ from io import StringIO
 import logging
 import os 
 
-connection_params = {
-    "host": os.getenv("postgres_host"),
-    "port": int(os.getenv("postgres_port", "5432")),
-    "dbname": os.getenv("postgres_dbname"),
-    "user": os.getenv("postgres_user"),
-    "password": os.getenv("postgres_password"),
-    "sslmode": "require",
-}
 
 urls = [
     "https://www.biznesradar.pl/spolki-wskazniki-wartosci-rynkowej/akcje_gpw,1,CWKCurrent",
@@ -111,6 +103,14 @@ def scrape_table(url):
 
 def main():
     merged_df = None
+    connection_params = {
+    "host": os.getenv("postgres_host"),
+    "port": int(os.getenv("postgres_port", "5432")),
+    "dbname": os.getenv("postgres_dbname"),
+    "user": os.getenv("postgres_user"),
+    "password": os.getenv("postgres_password"),
+    "sslmode": "require",
+}
 
     for i, url in enumerate(urls):
         df = scrape_table(url)

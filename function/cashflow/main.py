@@ -23,18 +23,6 @@ load_dotenv()
 NAMESPACE_CONNECTION_STR = os.getenv("cashflow_queue_connectionstring")
 QUEUE_NAME = "financial_cashflow_queue"
 db_table = "financial_cashflow_raw"
-try: 
-    conn = psycopg2.connect(
-        host=os.getenv('postgres_host'),
-        port=int(os.getenv('postgres_port')),
-        dbname=os.getenv('postgres_dbname'),
-        user=os.getenv('postgres_user'),
-        password=os.getenv('postgres_password'),
-        sslmode="require" 
-    )
-    logging.info("Connected to DB successfully")
-except Exception as e:
-    logging.exception(e)
 
 
 def scrap_for_ticker(ticker):
@@ -74,6 +62,18 @@ def scrap_for_ticker(ticker):
 
 
 async def run_and_receive():
+    try: 
+        conn = psycopg2.connect(
+            host=os.getenv('postgres_host'),
+            port=int(os.getenv('postgres_port')),
+            dbname=os.getenv('postgres_dbname'),
+            user=os.getenv('postgres_user'),
+            password=os.getenv('postgres_password'),
+            sslmode="require" 
+        )
+        logging.info("Connected to DB successfully")
+    except Exception as e:
+        logging.exception(e)
     final_df = pd.DataFrame()
     async with ServiceBusClient.from_connection_string(
         conn_str=NAMESPACE_CONNECTION_STR,
