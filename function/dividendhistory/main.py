@@ -17,11 +17,6 @@ NAMESPACE_CONNECTION_STR = os.getenv('queue_connstring')
 QUEUE_NAME = "dividend_queue"
 CONN_STRING = os.getenv("postgres-connstring")
 
-#  
-#db connection
-conn = psycopg2.connect(CONN_STRING)
-
-cursor = conn.cursor()
 
 def page_data(ticker):
     html = requests.get(f'https://www.biznesradar.pl/dywidenda/{ticker}', verify=False).text
@@ -55,10 +50,10 @@ def clean_data(df):
 
 
 def copy_to_financial_reports(conn, df):
+    cursor = conn.cursor()
     buffer = StringIO()
     df.to_csv(buffer, index=False, header=False)
     buffer.seek(0)
-    cursor = conn.cursor()
     try:
         cursor.copy_from(buffer, "dividend_history", sep=',')
         conn.commit()
@@ -72,6 +67,7 @@ def copy_to_financial_reports(conn, df):
 
 
 async def run_and_receive():
+    conn = psycopg2.connect(CONN_STRING)
     df = pd.DataFrame()
     async with ServiceBusClient.from_connection_string(
         conn_str=NAMESPACE_CONNECTION_STR,
