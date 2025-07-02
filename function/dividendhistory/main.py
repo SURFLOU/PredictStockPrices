@@ -11,11 +11,18 @@ from azure.servicebus.aio import ServiceBusClient
 from azure.servicebus import ServiceBusMessage
 import time
 from io import StringIO
+import logging 
+
+
+logging.basicConfig(
+    level=logging.INFO, 
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S' 
+)
 
 load_dotenv()
-NAMESPACE_CONNECTION_STR = os.getenv('queue_connstring')
+NAMESPACE_CONNECTION_STR = os.getenv('dividend_queue_connectionstring')
 QUEUE_NAME = "dividend_queue"
-CONN_STRING = os.getenv("postgres-connstring")
 
 
 def page_data(ticker):
@@ -33,7 +40,6 @@ def page_data(ticker):
         if data and len(data) == 10 and count < 8:
             data = [ticker] + data
             dataset.append(data)
-            print(data)
             yield data
 
 
@@ -49,59 +55,67 @@ def clean_data(df):
 
 
 
-def copy_to_financial_reports(conn, df):
+def copy_to_financial_reports(conn, df, table_name='dividend_history'):
     cursor = conn.cursor()
     buffer = StringIO()
     df.to_csv(buffer, index=False, header=False)
     buffer.seek(0)
     try:
-        cursor.copy_from(buffer, "dividend_history", sep=',')
+        cursor.copy_from(buffer, table_name, sep=',')
         conn.commit()
         
     except Exception as e:
         conn.rollback()
-        print("Error:", e)
+        logging.error("Error:", e)
     finally:
         cursor.close()
 
 
 
 async def run_and_receive():
-    conn = psycopg2.connect(CONN_STRING)
+    try: 
+        conn = psycopg2.connect(
+            host=os.getenv('postgres_host'),
+            port=int(os.getenv('postgres_port')),
+            dbname=os.getenv('postgres_dbname'),
+            user=os.getenv('postgres_user'),
+            password=os.getenv('postgres_password'),
+            sslmode="require" 
+        )
+        logging.info("Connected to DB successfully")
+    except Exception as e:
+        logging.exception(e)
     df = pd.DataFrame()
-    async with ServiceBusClient.from_connection_string(
-        conn_str=NAMESPACE_CONNECTION_STR,
-        logging_enable=True) as servicebus_client:
-        
-        async with servicebus_client:
-            receiver = servicebus_client.get_queue_receiver(queue_name=QUEUE_NAME)
-            async with receiver:
-                
-                received_msgs = await receiver.receive_messages(max_wait_time=5, max_message_count=450)
-                for msg in received_msgs[:30]:
-                    time.sleep(30)
-                    try:
-                        body = b"".join(msg.body).decode("utf-8")
-                    except Exception as e:
-                        print(f"Failed to decode message: {e}")
-                        await receiver.abandon_message(msg)
-                        continue
-                    print("Received:", body)
-
-                    try:
-                        rows = page_data(body)
-                        new_df = [x for x in rows]
-                        new_df = pd.DataFrame(data=new_df)
-                        df = pd.concat([df, new_df], ignore_index=True)
-                        
-                        await receiver.complete_message(msg)
-                    except Exception as e:
-                        print(f"Error processing message: {e}")
-                        await receiver.abandon_message(msg)
-                
-        df = clean_data(df)
-        
-        copy_to_financial_reports(conn, df)
-
+    for _ in range(5):
+        async with ServiceBusClient.from_connection_string(
+            conn_str=NAMESPACE_CONNECTION_STR,
+            logging_enable=True) as servicebus_client:
+            
+            async with servicebus_client:
+                receiver = servicebus_client.get_queue_receiver(queue_name=QUEUE_NAME)
+                async with receiver:
+                    
+                    received_msgs = await receiver.receive_messages(max_wait_time=30, max_message_count=10)
+                    if len(received_msgs) == 0:
+                        logging.info("No messages received from the queue. Retrying... {_ + 1}/5")
+                        return
+                    for msg in received_msgs:
+                        logging.info(f"Received message: {str(msg)}")
+                        rows = list(page_data(str(msg)))
+                        if len(rows) > 0:
+                            new_df = pd.DataFrame(data=rows)
+                            df = pd.concat([df, new_df], ignore_index=True)
+                        else:
+                            logging.info(f"No data found for ticker: {str(msg)}")
+                            await receiver.complete_message(msg)
+                            time.sleep(30)
+            if df.shape[0] == 0:
+                logging.info("No dividend data received.")
+                return        
+            df = clean_data(df)
+            logging.info(f"Data cleaned. Number of rows: {df.shape[0]}")
+            copy_to_financial_reports(conn, df)
+            logging.info(f"Data inserted into table: dividend_history")
+            return
 def main():
     asyncio.run(run_and_receive())
