@@ -8,6 +8,11 @@ from io import StringIO
 import logging
 import os 
 
+logging.basicConfig(
+    level=logging.INFO, 
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S' 
+)
 
 urls = [
     "https://www.biznesradar.pl/spolki-wskazniki-wartosci-rynkowej/akcje_gpw,1,CWKCurrent",
@@ -21,7 +26,6 @@ urls = [
 ]
 
 def copy_dataframe_to_db(df, connection_params, table_name="financial_ratios"):
-    # Mapowanie kolumn z polskich nazw na SQL-owe
     column_mapping = {
         "Cena / Wartość księgowa": "price_book_value",
         "Cena / Wartość księgowa Grahama": "price_graham_book_value",
@@ -33,38 +37,36 @@ def copy_dataframe_to_db(df, connection_params, table_name="financial_ratios"):
         "EV / EBITDA": "ev_ebitda"
     }
 
-    # Zmień nazwy kolumn w DataFrame
     df = df.rename(columns=column_mapping)
 
-    # Lista wszystkich wymaganych kolumn
     required_columns = ["ticker"] + list(column_mapping.values())
 
-    # Uzupełnij brakujące kolumny NaN
     for col in required_columns:
         if col not in df.columns:
             df[col] = np.nan
 
-    # Zachowaj tylko potrzebne kolumny we właściwej kolejności
     df = df[required_columns]
 
-    # Zamień NaN na pusty string (interpretuje się jako NULL w SQL, jeśli kolumna na to pozwala)
     df = df.where(pd.notnull(df), None)
 
-    # Konwersja do CSV w buforze pamięci
     buffer = StringIO()
     df.to_csv(buffer, index=False, header=False, sep=',')
     buffer.seek(0)
 
-    # Wstawianie do bazy danych
-    conn = psycopg2.connect(**connection_params)
+    try:
+        conn = psycopg2.connect(**connection_params)
+        logging.info("Connected to the database successfully.")
+    except Exception as e:
+        logging.error(f"Error while trying to connect to database: {e}")
+        return
     cursor = conn.cursor()
     try:
         cursor.copy_from(buffer, table_name, sep=',', null='')
         conn.commit()
-        logging.info(f"Dane zostały wstawione do tabeli '{table_name}'.")
+        logging.info(f"Data inserted into table '{table_name}'.")
     except Exception as e:
         conn.rollback()
-        logging.exception("Błąd podczas wstawiania danych przez copy_from:", exc_info=e)
+        logging.exception("Error while inserting data using copy_from:", exc_info=e)
     finally:
         cursor.close()
         conn.close()
@@ -75,7 +77,6 @@ def scrape_table(url):
     soup = BeautifulSoup(response.content, "html.parser")
     table = soup.find("table")
 
-    # Pobieramy nazwę kolumny z nagłówka (3. kolumna)
     headers = table.find("thead").find_all("th")
     col_name = headers[2].get_text(strip=True)
 
@@ -85,11 +86,8 @@ def scrape_table(url):
     for row in table.tbody.find_all("tr"):
         cols = row.find_all("td")
         if len(cols) >= 3:
-            # Ticker (np. "LES (LESS)" -> "LES")
             ticker_full = cols[0].text.strip()
             ticker = ticker_full.split(" ")[0]
-
-            # 3. kolumna
             value_text = cols[2].get_text(strip=True).replace(" ", "").replace(",", ".")
             try:
                 value = float(value_text)
@@ -120,8 +118,8 @@ def main():
         else:
             merged_df = pd.merge(merged_df, df, on="ticker", how="outer")
 
-        print(f"{i+1}/{len(urls)} pobrane")
+        logging.info(f"{i+1}/{len(urls)} scrapped")
         if i < len(urls) - 1:
-            time.sleep(61)
+            time.sleep(30)
 
     copy_dataframe_to_db(merged_df, connection_params)
