@@ -75,23 +75,28 @@ async def run_and_receive():
     except Exception as e:
         logging.exception(e)
     final_df = pd.DataFrame()
-    async with ServiceBusClient.from_connection_string(
-        conn_str=NAMESPACE_CONNECTION_STR,
-        logging_enable=True) as servicebus_client:
+    for _ in range(5):
+        async with ServiceBusClient.from_connection_string(
+            conn_str=NAMESPACE_CONNECTION_STR,
+            logging_enable=True) as servicebus_client:
 
-        async with servicebus_client:
-            receiver = servicebus_client.get_queue_receiver(queue_name=QUEUE_NAME)
-            async with receiver:
-                received_msgs = await receiver.receive_messages(max_wait_time=5, max_message_count=450)
-                for msg in received_msgs[:30]:
-                    logging.info(f"Received message: {str(msg)}")
-                    df = scrap_for_ticker(str(msg))
-                    logging.info(f"Scrapped for ticker: {str(msg)}")
-                    final_df = pd.concat([df, final_df])
-                    await receiver.complete_message(msg)
-                    time.sleep(30)
-    logging.info(f"Inserting data to table: {db_table}")
-    copy_to_table(conn, final_df, db_table)
+            async with servicebus_client:
+                receiver = servicebus_client.get_queue_receiver(queue_name=QUEUE_NAME)
+                async with receiver:
+                    received_msgs = await receiver.receive_messages(max_wait_time=5, max_message_count=10)
+                    if len(received_msgs) == 0:
+                        logging.info(f"No data received from the queue, retrying... {_ + 1}/5")
+                        continue
+                    for msg in received_msgs:
+                        logging.info(f"Received message: {str(msg)}")
+                        df = scrap_for_ticker(str(msg))
+                        logging.info(f"Scrapped for ticker: {str(msg)}")
+                        final_df = pd.concat([df, final_df])
+                        await receiver.complete_message(msg)
+                        time.sleep(30)
+        logging.info(f"Inserting data to table: {db_table}")
+        copy_to_table(conn, final_df, db_table)
+        return
 
 def copy_to_table(conn, df, table):
     buffer = StringIO()

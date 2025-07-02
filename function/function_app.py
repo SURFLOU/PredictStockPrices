@@ -15,12 +15,12 @@ app = func.FunctionApp()
 def livestockprices(myTimer: func.TimerRequest) -> None:
     livestockprices_main()
 
-@app.timer_trigger(schedule="0 0 19 * * *", arg_name="myTimer", run_on_startup=False,
+@app.timer_trigger(schedule="0 0 * * * *", arg_name="myTimer", run_on_startup=False,
               use_monitor=False) 
 def cashflow(myTimer: func.TimerRequest) -> None:
     cashflow_main()
 
-@app.timer_trigger(schedule="0 0 19 * * *", arg_name="myTimer", run_on_startup=False,
+@app.timer_trigger(schedule="0 0 * * * *", arg_name="myTimer", run_on_startup=False,
               use_monitor=False) 
 def financialratios(myTimer: func.TimerRequest) -> None:
     financialratios_main()   
