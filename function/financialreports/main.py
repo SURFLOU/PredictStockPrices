@@ -120,19 +120,23 @@ async def run_and_receive():
             async with servicebus_client:
                 receiver = servicebus_client.get_queue_receiver(queue_name=QUEUE_NAME)
                 async with receiver:
-                    received_msgs = await receiver.receive_messages(max_wait_time=5, max_message_count=10)
+                    received_msgs = await receiver.receive_messages(max_wait_time=5, max_message_count=8)
                     if len(received_msgs) == 0:
                         logging.info(f"No data received from the queue, retrying... {_ + 1}/5")
                         continue
                     for msg in received_msgs:
                         logging.info(f"Received message: {str(msg)}")
-                        df = scrap_for_ticker(str(msg))
-                        logging.info(f"Scrapped for ticker: {str(msg)}")
-                        final_df = pd.concat([df, final_df])
+                        try:
+                            df = scrap_financial_reports(str(msg))
+                            logging.info(f"Scrapped for ticker: {str(msg)}")
+                            final_df = pd.concat([df, final_df])
+                        except KeyError:
+                            logging.info(f"{str(msg)} - banking company, other financial report - skip")
                         await receiver.complete_message(msg)
                         time.sleep(30)
-    logging.info(f"Inserting data to table: {db_table}")
-    copy_to_table(conn, final_df, db_table)
+        logging.info(f"Inserting data to table: {db_table}")
+        copy_to_table(conn, final_df, db_table)
+        return
 
 def copy_to_table(conn, df, table):
     buffer = StringIO()
