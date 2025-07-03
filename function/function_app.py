@@ -6,7 +6,7 @@ from cashflow.main import main as cashflow_main
 from livestockprices.main import main as livestockprices_main
 from financialratios.main import main as financialratios_main
 from dividendhistory.main import main as dividendhistory_main
-from financial_reports.main import main as financialreports_main
+from financialreports.main import main as financialreports_main
 import azure.functions as func
 
 app = func.FunctionApp()
