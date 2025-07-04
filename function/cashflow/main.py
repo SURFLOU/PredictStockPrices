@@ -112,3 +112,4 @@ def copy_to_table(conn, df, table):
 
 def main():
     asyncio.run(run_and_receive())
+    # test
