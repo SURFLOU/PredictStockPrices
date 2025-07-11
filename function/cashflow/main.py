@@ -23,18 +23,6 @@ load_dotenv()
 NAMESPACE_CONNECTION_STR = os.getenv("cashflow_queue_connectionstring")
 QUEUE_NAME = "financial_cashflow_queue"
 db_table = "financial_cashflow_raw"
-try: 
-    conn = psycopg2.connect(
-        host=os.getenv('postgres_host'),
-        port=int(os.getenv('postgres_port')),
-        dbname=os.getenv('postgres_dbname'),
-        user=os.getenv('postgres_user'),
-        password=os.getenv('postgres_password'),
-        sslmode="require" 
-    )
-    logging.info("Connected to DB successfully")
-except Exception as e:
-    logging.exception(e)
 
 
 def scrap_for_ticker(ticker):
@@ -74,24 +62,41 @@ def scrap_for_ticker(ticker):
 
 
 async def run_and_receive():
+    try: 
+        conn = psycopg2.connect(
+            host=os.getenv('postgres_host'),
+            port=int(os.getenv('postgres_port')),
+            dbname=os.getenv('postgres_dbname'),
+            user=os.getenv('postgres_user'),
+            password=os.getenv('postgres_password'),
+            sslmode="require" 
+        )
+        logging.info("Connected to DB successfully")
+    except Exception as e:
+        logging.exception(e)
     final_df = pd.DataFrame()
-    async with ServiceBusClient.from_connection_string(
-        conn_str=NAMESPACE_CONNECTION_STR,
-        logging_enable=True) as servicebus_client:
+    for _ in range(5):
+        async with ServiceBusClient.from_connection_string(
+            conn_str=NAMESPACE_CONNECTION_STR,
+            logging_enable=True) as servicebus_client:
 
-        async with servicebus_client:
-            receiver = servicebus_client.get_queue_receiver(queue_name=QUEUE_NAME)
-            async with receiver:
-                received_msgs = await receiver.receive_messages(max_wait_time=5, max_message_count=450)
-                for msg in received_msgs[:30]:
-                    logging.info(f"Received message: {str(msg)}")
-                    df = scrap_for_ticker(str(msg))
-                    logging.info(f"Scrapped for ticker: {str(msg)}")
-                    final_df = pd.concat([df, final_df])
-                    await receiver.complete_message(msg)
-                    time.sleep(30)
-    logging.info(f"Inserting data to table: {db_table}")
-    copy_to_table(conn, final_df, db_table)
+            async with servicebus_client:
+                receiver = servicebus_client.get_queue_receiver(queue_name=QUEUE_NAME)
+                async with receiver:
+                    received_msgs = await receiver.receive_messages(max_wait_time=5, max_message_count=10)
+                    if len(received_msgs) == 0:
+                        logging.info(f"No data received from the queue, retrying... {_ + 1}/5")
+                        continue
+                    for msg in received_msgs:
+                        logging.info(f"Received message: {str(msg)}")
+                        df = scrap_for_ticker(str(msg))
+                        logging.info(f"Scrapped for ticker: {str(msg)}")
+                        final_df = pd.concat([df, final_df])
+                        await receiver.complete_message(msg)
+                        time.sleep(30)
+        logging.info(f"Inserting data to table: {db_table}")
+        copy_to_table(conn, final_df, db_table)
+        return
 
 def copy_to_table(conn, df, table):
     buffer = StringIO()

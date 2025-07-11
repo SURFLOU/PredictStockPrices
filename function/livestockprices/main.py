@@ -1,5 +1,4 @@
 import logging
-import azure.functions as func
 import asyncio
 import json
 import os
@@ -14,7 +13,6 @@ import logging
 
 logging.basicConfig(level=logging.INFO)
 
-app = func.FunctionApp()
 
 EVENT_HUB_CONNECTION_STR = os.getenv("EVENT_HUB_CONNECTION_STR")
 EVENT_HUB_NAME = os.getenv("EVENT_HUB_NAME")
