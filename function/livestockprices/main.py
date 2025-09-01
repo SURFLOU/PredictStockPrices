@@ -1,3 +1,4 @@
+import logging
 import asyncio
 import json
 import os
@@ -7,6 +8,10 @@ from azure.eventhub.aio import EventHubProducerClient
 import requests
 from datetime import datetime
 from zoneinfo import ZoneInfo
+import logging 
+
+
+logging.basicConfig(level=logging.INFO)
 
 
 EVENT_HUB_CONNECTION_STR = os.getenv("EVENT_HUB_CONNECTION_STR")
@@ -30,17 +35,23 @@ def get_live_prices():
         price = match.group('price').replace(',', '.')
         yield {'ticker': ticker, 'price': price, 'time': current_time}
 
-async def send_events():
-    producer = EventHubProducerClient.from_connection_string(
-        conn_str=EVENT_HUB_CONNECTION_STR,
-        eventhub_name=EVENT_HUB_NAME
-    )
-    async with producer:
-        batch = await producer.create_batch()
-        for event in get_live_prices():
-            batch.add(EventData(json.dumps(event)))
-            print(f"Sending event: {event}")
-        await producer.send_batch(batch)
 
-def lambda_handler(event, context):
-    return asyncio.run(send_events())
+async def main_loop():
+    try:
+        producer = EventHubProducerClient.from_connection_string(
+            conn_str=EVENT_HUB_CONNECTION_STR,
+            eventhub_name=EVENT_HUB_NAME
+        )
+
+        async with producer:
+            batch = await producer.create_batch()
+            for event in get_live_prices():
+                batch.add(EventData(json.dumps(event)))
+                logging.info(f"Sending event: {event}")
+            await producer.send_batch(batch)
+
+    except Exception as e:
+        logging.exception("Unhandled error while sending events to Event Hub")
+
+def main():
+    asyncio.run(main_loop())
