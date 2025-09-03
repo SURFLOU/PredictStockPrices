@@ -1,17 +1,20 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
+from uuid import UUID
+
+class RegisterUserRequest(BaseModel):
+    email: EmailStr
+    first_name: str
+    last_name: str
+    password: str
 
 class Token(BaseModel):
     access_token: str
     token_type: str
 
 class TokenData(BaseModel):
-    username: str | None = None
+    user_id: str | None = None
 
-class User(BaseModel):
-    username: str
-    email: str | None = None
-    full_name: str | None = None
-    disabled: bool | None = None
-
-class UserInDB(User):
-    hashed_password: str
+    def get_uuid(self) -> UUID | None:
+        if self.user_id:
+            return UUID(self.user_id)
+        return None
